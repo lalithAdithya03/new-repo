@@ -1,0 +1,163 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>StudyMate – Source-Grounded Study Companion</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7fb;--c:#fff;--t:#1d2433;--m:#64708a;--a:#4f46e5;--g:#16a34a;--r:#dc2626;--y:#d97706;--b:#e3e7f0}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1420;--c:#182033;--t:#e8ecf5;--m:#93a0bd;--a:#818cf8;--b:#2a3550}}
+:root[data-theme="dark"]{--bg:#0f1420;--c:#182033;--t:#e8ecf5;--m:#93a0bd;--a:#818cf8;--b:#2a3550}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--t)}
+header{padding:14px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{font-size:19px;margin:0}nav{display:flex;gap:6px;flex-wrap:wrap}
+button,.btn{font:inherit;border:1px solid var(--b);background:var(--c);color:var(--t);padding:7px 12px;border-radius:8px;cursor:pointer}
+button.on,button.p{background:var(--a);color:#fff;border-color:var(--a)}
+main{max-width:980px;margin:0 auto;padding:0 14px 40px}.card{background:var(--c);border:1px solid var(--b);border-radius:12px;padding:14px;margin:10px 0}
+.v{display:none}.v.on{display:block}.tag,.ch{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--b);margin:2px;color:var(--m)}
+.ch{color:var(--a);border-color:var(--a);cursor:pointer}.meta{font-size:13px;color:var(--m)}
+.bar{height:10px;background:var(--b);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%}
+input[type=text],input[type=number],select{font:inherit;padding:7px;border:1px solid var(--b);border-radius:8px;background:var(--c);color:var(--t)}
+#chat{max-height:50vh;overflow:auto}.me{text-align:right}.me span{display:inline-block;background:var(--a);color:#fff;padding:6px 10px;border-radius:10px;margin:4px 0}
+.bot{margin:8px 0}.warn{border-left:4px solid var(--y);padding-left:8px}.no{border-left:4px solid var(--r);padding-left:8px}.ok{border-left:4px solid var(--g);padding-left:8px}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--b);padding:5px;text-align:left}
+#modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px}#modal>div{background:var(--c);max-width:560px;border-radius:12px;padding:16px;max-height:80vh;overflow:auto}
+mark{background:#fde68a;color:#000}.svgw{overflow-x:auto}.opt{display:block;width:100%;text-align:left;margin:5px 0}
+</style></head><body>
+<header><h1>📚 StudyMate <span class="meta">source-grounded adaptive tutor</span></h1><nav id="nav"></nav></header>
+<main>
+<section class="v on" id="v-lib"></section><section class="v" id="v-chat"></section><section class="v" id="v-quiz"></section><section class="v" id="v-dash"></section><section class="v" id="v-eval"></section>
+</main><div id="modal" onclick="if(event.target==this)this.style.display='none'"><div id="mb"></div></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const STOP=new Set("a an the of in on to is are was were be been and or for with as by at from that this it its which what how why when who do does did can could should would will into than then there their these those such not no but if so we you your about between over under using use used also may might each".split(" "));
+const st=w=>{if(w.length>5)w=w.replace(/(ing|ed)$/,'');return w.endsWith('ss')?w:w.replace(/s$/,'')};
+const tok=t=>(t.toLowerCase().match(/[a-z0-9]+/g)||[]).filter(w=>w.length>1&&!STOP.has(w)).map(st);
+const sents=t=>t.split(/(?<=[.!?])\s+/),avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,pick=a=>a[Math.floor(Math.random()*a.length)];
+let DOCS=[],U=[],TP={},QB=[],IDF={},CANDS=[],S={m:{},asked:[],log:[]},QZ=null;
+const SAMPLE=[{n:'Textbook: ML Basics',t:`## Supervised Learning
+[p.3] Supervised learning trains a model on labeled examples, where every input is paired with a known target output. The goal is to learn a function that predicts the target for new unseen inputs.
+## Linear Regression > Supervised Learning
+[p.12] Linear regression predicts a continuous value as a weighted sum of input features plus a bias term. The weights are fitted by minimizing the mean squared error between predictions and targets.
+Q: A linear model has weight w=2 and bias b=1. What is the prediction for x=3? | A: 7
+## Gradient Descent > Linear Regression
+[p.20] Gradient descent minimizes a loss function by repeatedly moving the parameters in the direction of the negative gradient. The learning rate controls the size of each step taken downhill.
+Figure: Contour plot showing gradient descent steps converging toward the minimum of a bowl shaped loss surface.
+## Overfitting > Linear Regression
+[p.27] Overfitting happens when a model memorizes noise in the training data and performs poorly on validation data. Regularization penalizes large weights to reduce variance and improve generalization.
+## Logistic Regression > Linear Regression
+[p.33] Logistic regression applies the sigmoid function to a linear score to output a probability between zero and one. It is trained by minimizing the cross entropy loss for binary classification.
+## Neural Networks > Gradient Descent, Logistic Regression
+[p.41] A neural network stacks layers of neurons, each applying a weighted sum followed by a nonlinear activation function. Backpropagation computes the gradient of the loss with respect to every weight using the chain rule.`},
+{n:'Slides: Lecture 4',t:`## Supervised Learning
+[slide 2] Classification predicts discrete categories while regression predicts continuous quantities. Both are supervised learning tasks that need labeled data.
+## Gradient Descent
+[slide 7] Stochastic gradient descent estimates the gradient from a small random minibatch of samples. This makes each update cheap and adds helpful noise during optimization.
+## Overfitting
+[slide 11] A validation set is held out from training to detect overfitting early. Early stopping halts training when the validation loss begins to increase.`},
+{n:'Lecture Video: Week 5',t:`## Neural Networks
+[00:04:10] The ReLU activation outputs zero for negative inputs and the input itself for positive inputs. It is popular because it avoids the vanishing gradient problem in deep networks.
+## Logistic Regression
+[00:12:45] The decision boundary of logistic regression is the set of points where the predicted probability equals one half. Because the score is linear, this boundary is a straight line.`}];
+function parse(raw,src){const u=[],tp={},q=[];let topic='General',loc=null,buf=[],cues=0,m;
+const fl=()=>{const t=buf.join(' ').replace(/<[^>]+>/g,'').trim();if(t.length>40){tp[topic]=tp[topic]||[];u.push({src,loc:loc||'§'+(u.length+1),topic,text:t});buf=[]}};
+for(const l of raw.split(/\r?\n/)){const s=l.trim();
+if(m=s.match(/^##\s*([^>]+?)\s*(?:>\s*(.+))?$/)){fl();buf=[];topic=m[1];tp[topic]=m[2]?m[2].split(',').map(x=>x.trim()):[]}
+else if(m=s.match(/^\[(p\.?\s*\d+|slide\s*\d+|\d{1,2}:\d{2}(?::\d{2})?)\]\s*(.*)$/i)){fl();buf=[];loc=m[1];if(m[2])buf.push(m[2])}
+else if(m=s.match(/^(\d\d:\d\d(?::\d\d)?)(?:[.,]\d+)?\s*-->/)){if(cues++%4==0){fl();buf=[];loc=m[1]}}
+else if(m=s.match(/^Q:\s*(.+?)\s*\|\s*A:\s*(-?[\d.]+)/))q.push({q:m[1],ans:+m[2],topic,src,loc:loc||'—'});
+else if(s&&!/^\d+$/.test(s)&&!/^WEBVTT/.test(s))buf.push(s)}
+fl();return{u,tp,q}}
+function build(){U=[];TP={};QB=[];DOCS.forEach(d=>{const r=parse(d.t,d.n);U.push(...r.u);QB.push(...r.q);for(const k in r.tp)if(!TP[k]||!TP[k].length)TP[k]=r.tp[k]});
+const df={};U.forEach((u,i)=>{u.id=i;u.tk=tok(u.text);u.len=u.tk.length;new Set(u.tk).forEach(t=>df[t]=(df[t]||0)+1)});
+IDF={};for(const t in df)IDF[t]=Math.log(1+(U.length-df[t]+.5)/(df[t]+.5));
+CANDS=[];U.forEach(u=>sents(u.text).forEach((s,i)=>{const w=s.replace(/[^\w\s-]/g,'').split(/\s+/);if(w.length<8)return;let b=null,bi=0;w.forEach(x=>{const k=st(x.toLowerCase());if(x.length>3&&!STOP.has(x.toLowerCase())&&(IDF[k]||0)>bi){bi=IDF[k];b=x}});if(b)CANDS.push({id:u.id+':'+i,u,s,term:b,idf:bi,topic:u.topic})}));
+const o=[...CANDS].sort((a,b)=>a.idf-b.idf);o.forEach((c,i)=>c.d=i<o.length/3?'easy':i<2*o.length/3?'medium':'hard');save();renderAll()}
+function save(){try{localStorage.setItem('sm1',JSON.stringify({DOCS,S}))}catch(e){}}
+function load(){try{const j=JSON.parse(localStorage.getItem('sm1')||'null');if(j){DOCS=j.DOCS;S=j.S}}catch(e){}}
+const M=(s,t)=>s.m[t]?s.m[t].p:.3;
+const bkt=(p,c,g,s=.1,T=.15)=>{const q=c?p*(1-s)/(p*(1-s)+(1-p)*g):p*s/(p*s+(1-p)*(1-g));return q+(1-q)*T};
+function upd(s,t,ok,g){const m=s.m[t]||(s.m[t]={p:.3,n:0});m.p=bkt(m.p,ok,g);m.n++;m.ts=Date.now()}
+function search(q){const qt=[...new Set(tok(q))];if(!qt.length||!U.length)return{h:[],cov:0,qt};
+const av=avg(U.map(u=>u.len)),mx=Math.log(1+(U.length+.5)/.5),iv=t=>IDF[t]??mx,tot=qt.reduce((a,t)=>a+iv(t),0);
+const sc=U.map(u=>{let b=0,c=0;qt.forEach(t=>{const f=u.tk.filter(x=>x==t).length;if(f){b+=iv(t)*f*2.2/(f+1.2*(.25+.75*u.len/av));c+=iv(t)}});return{u,b,c:c/tot}}).sort((a,b)=>b.b-a.b);
+return{h:sc.slice(0,3),cov:sc[0].b?sc[0].c:0,qt}}
+function ans(q){const r=search(q);if(r.cov<.3)return{k:'no',r};const u=r.h[0].u;
+const ss=sents(u.text).map(s=>({s,o:tok(s).filter(t=>r.qt.includes(t)).length})).sort((a,b)=>b.o-a.o).slice(0,2).filter(x=>x.o>0);return{k:r.cov>=.6?'ok':'part',r,u,ss}}
+const chip=(uid,h,l)=>uid>=0?`<span class="ch" data-u="${uid}" data-h="${encodeURIComponent(h||'')}">🔗 ${esc(l||U[uid].src+' · '+U[uid].loc)}</span>`:'';
+document.addEventListener('click',e=>{const c=e.target.closest('.ch');if(!c)return;const u=U[+c.dataset.u],h=decodeURIComponent(c.dataset.h);
+let t=esc(u.text);if(h)t=t.split(esc(h)).join('<mark>'+esc(h)+'</mark>');
+$('#mb').innerHTML=`<div class="meta">${/Video/i.test(u.src)?'▶ Video timestamp':/Slide/i.test(u.src)?'🖼 Slide':'📖 Page'} — <b>${esc(u.src)}</b> · ${esc(u.loc)} · topic: ${esc(u.topic)}</div><p>${t}</p><button onclick="$('#modal').style.display='none'">Close</button>`;$('#modal').style.display='flex'});
+function prereqHint(t){const w=(TP[t]||[]).filter(p=>M(S,p)<.4);return w.length?`<div class="meta">💡 Your mastery of prerequisite <b>${w.map(esc).join(', ')}</b> is low – review it first.</div>`:''}
+function ask(){const i=$('#q'),q=i.value.trim();if(!q)return;i.value='';const c=$('#chat');c.insertAdjacentHTML('beforeend',`<div class="me"><span>${esc(q)}</span></div>`);const a=ans(q);let h;
+if(a.k=='no')h=`<div class="no"><b>Not covered by your material.</b> I can't find support for this in the uploaded sources, so I won't answer from outside knowledge.${a.r.h[0]&&a.r.h[0].b?`<br><span class="meta">Closest topics: ${[...new Set(a.r.h.map(x=>x.u.topic))].map(esc).join(', ')}</span>`:''}</div>`;
+else{const ex=a.ss.map(x=>`“${esc(x.s)}”`).join(' ');const cs=a.r.h.filter(x=>x.c>.2).map(x=>chip(x.u.id,a.ss[0]&&x.u.id==a.u.id?a.ss[0].s:'')).join('');
+h=`<div class="${a.k=='ok'?'ok':'warn'}">${a.k=='ok'?'<b>From your material:</b>':'<b>⚠ Partially covered</b> – only part of your question matches the sources; nothing outside them is added.'}<br>${ex}<br>${cs}${prereqHint(a.u.topic)}</div>`;
+if(a.k=='ok'){const m=S.m[a.u.topic]||(S.m[a.u.topic]={p:.3,n:0});m.p=Math.min(.99,m.p+.02);save()}}
+c.insertAdjacentHTML('beforeend',`<div class="bot">${h}</div>`);c.scrollTop=1e9}
+function renderLib(){$('#v-lib').innerHTML=`<div class="card"><b>1 · Multimodal knowledge base</b><p class="meta">Upload text-converted sources: textbook (<code>[p.12]</code> markers), slides (<code>[slide 4]</code>), lecture transcripts (.vtt/.srt or <code>[00:12:30]</code>). Use <code>## Topic &gt; Prereq1, Prereq2</code> headings to define topics; <code>Figure: …</code> lines index diagram captions; <code>Q: … | A: 7</code> adds numerical problems. Without headings everything goes into “General”.</p>
+<input type="file" id="fi" multiple accept=".txt,.md,.vtt,.srt"> <button class="p" onclick="loadSample()">Load sample course</button> <button onclick="if(confirm('Clear sources and learner data?')){DOCS=[];S={m:{},asked:[],log:[]};build()}">Clear all</button></div>
+<div class="card"><b>Sources</b> ${DOCS.map(d=>`<span class="tag">${esc(d.n)} · ${U.filter(u=>u.src==d.n).length} units</span>`).join('')||'<span class="meta">none yet</span>'}</div>
+<div class="card"><b>Topics, prerequisites & source-linked units</b><table>${Object.keys(TP).map(t=>`<tr><td><b>${esc(t)}</b><div class="meta">${TP[t].length?'needs: '+TP[t].map(esc).join(', '):'no prerequisites'}</div></td><td>${U.filter(u=>u.topic==t).map(u=>chip(u.id,'')).join('')}</td></tr>`).join('')}</table></div>`;
+$('#fi').onchange=async e=>{for(const f of e.target.files)DOCS.push({n:f.name,t:await f.text()});build()}}
+function loadSample(){DOCS=SAMPLE.map(d=>({...d}));S={m:{},asked:[],log:[]};build()}
+function renderChat(){$('#v-chat').innerHTML=`<div class="card"><b>2 · Source-grounded tutor</b><div class="meta">Answers are extractive and cited; uncovered questions are declined or flagged. Try asking about gradient descent, then about sourdough bread.</div><div id="chat"></div><p><input type="text" id="q" style="width:70%" placeholder="Ask about your material…" onkeydown="if(event.key=='Enter')ask()"> <button class="p" onclick="ask()">Ask</button></p></div>`}
+function mkQ(c,type){const re=new RegExp('\\b'+c.term.replace(/[^\w]/g,'')+'\\b','i'),stem=c.s.replace(re,'_____'),a=c.term.toLowerCase().replace(/[^\w-]/g,'');
+const dist=[...new Set(CANDS.filter(x=>x.id!=c.id&&x.term.toLowerCase()!=c.term.toLowerCase()&&!c.s.toLowerCase().includes(x.term.toLowerCase())).sort((p,q)=>(q.topic==c.topic)-(p.topic==c.topic)||Math.random()-.5).map(x=>x.term.toLowerCase().replace(/[^\w-]/g,'')))].slice(0,3);
+const ok=stem.includes('_____')&&c.u.text.toLowerCase().includes(a)&&(type=='short'||dist.length==3);
+return{id:c.id,type,q:'Fill in the blank: '+stem,ans:a,opts:type=='mcq'?[a,...dist].sort(()=>Math.random()-.5):null,topic:c.topic,src:c.u.src,loc:c.u.loc,d:c.d,ev:c.s,uid:c.u.id,ok}}
+function gen(s,scope,n,mode,ad=true){const out=[],used=new Set;for(let k=0;k<n;k++){
+const num=QB.map((x,i)=>({...x,id:'n'+i})).filter(x=>scope.includes(x.topic)&&!s.asked.includes(x.id)&&!used.has(x.id));
+if(num.length&&(mode=='num'||(mode=='mixed'&&k%4==3))){const x=num[0];used.add(x.id);out.push({...x,type:'num',d:'hard',ev:'Worked example in the source',uid:U.findIndex(u=>u.src==x.src&&u.topic==x.topic),ok:true});continue}
+const av=CANDS.filter(c=>scope.includes(c.topic)&&!used.has(c.id)&&(!ad||!s.asked.includes(c.id)));if(!av.length)break;let c;
+if(ad){const ts=[...new Set(av.map(c=>c.topic))],w=ts.map(t=>1.1-M(s,t));let r=Math.random()*w.reduce((a,b)=>a+b,0),t=ts[0];for(let i=0;i<ts.length;i++){r-=w[i];if(r<=0){t=ts[i];break}}
+const m=M(s,t),d=m<.4?'easy':m<.7?'medium':'hard',pt=av.filter(c=>c.topic==t),pd=pt.filter(c=>c.d==d);c=pick(pd.length?pd:pt)}else c=pick(av);
+used.add(c.id);out.push(mkQ(c,mode=='short'||(mode=='mixed'&&k%3==2)?'short':'mcq'))}return out}
+function renderQuiz(){const T=Object.keys(TP);$('#v-quiz').innerHTML=`<div class="card"><b>3 · Adaptive assessment</b>
+<p>Scope: ${T.map((t,i)=>`<label><input type="checkbox" class="sc" value="${esc(t)}" checked> ${esc(t)}</label> `).join('')||'<span class="meta">load a course first</span>'}</p>
+Questions <input type="number" id="nq" value="8" min="1" max="30" style="width:70px"> Type <select id="qm"><option value="mixed">Mixed (MCQ+short+numerical)</option><option value="mcq">MCQ</option><option value="short">Short answer</option><option value="num">Numerical</option></select>
+<button class="p" onclick="startQ()">Start quiz</button> <button onclick="startQ(1)">Diagnostic (new student)</button><div class="meta">Questions never repeat across assessments; difficulty and topic follow your mastery estimates.</div></div><div id="qa"></div>`}
+function startQ(dg){let sc=[...document.querySelectorAll('.sc:checked')].map(x=>x.value);if(dg){sc=Object.keys(TP);}
+const n=dg?Math.min(sc.length*1,12):+$('#nq').value,qs=gen(S,sc,n,dg?'mcq':$('#qm').value);if(!qs.length)return $('#qa').innerHTML='<div class="card">No unseen questions left in this scope.</div>';QZ={qs,i:0,r:[]};qRender()}
+function qRender(){const q=QZ.qs[QZ.i];if(!q)return qEnd();
+let h=`<div class="card"><div class="meta">Q${QZ.i+1}/${QZ.qs.length} <span class="tag">${esc(q.topic)}</span><span class="tag">${q.d}</span><span class="tag">${q.type}</span><span class="tag">📍 ${esc(q.src)} · ${esc(q.loc)}</span>${q.ok?'<span class="tag" style="color:var(--g)">✓ key verified</span>':''}</div><p><b>${esc(q.q)}</b></p>`;
+h+=q.type=='mcq'?q.opts.map((o,i)=>`<button class="opt" onclick="ansQ(${i})">${esc(o)}</button>`).join(''):`<input type="text" id="sa" placeholder="Your answer"> <button class="p" onclick="ansQ()">Submit</button>`;$('#qa').innerHTML=h+'<div id="fb"></div></div>'}
+function ansQ(i){const q=QZ.qs[QZ.i];let v=q.type=='mcq'?q.opts[i]:$('#sa').value.trim(),ok;
+if(q.type=='num')ok=Math.abs(parseFloat(v)-q.ans)<=.01*Math.max(1,Math.abs(q.ans));else ok=st(v.toLowerCase())==st(String(q.ans));
+upd(S,q.topic,ok,q.type=='mcq'?.25:.05);S.asked.push(q.id);S.log.push({t:q.topic,ok,ch:v,a:q.ans,type:q.type,ts:Date.now()});QZ.r.push({q,ok,v});save();
+document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+$('#fb').innerHTML=`<p class="${ok?'ok':'no'}"><b>${ok?'Correct ✓':'Not quite ✗'}</b> – answer: <b>${esc(q.ans)}</b>.<br>Source evidence: “${esc(q.ev)}” ${chip(q.uid,q.ev,q.src+' · '+q.loc)}<br><span class="meta">${esc(q.topic)} mastery → ${Math.round(M(S,q.topic)*100)}%</span></p><button class="p" onclick="QZ.i++;qRender()">Next →</button>`}
+function miscs(log){return[...new Set(log.filter(l=>!l.ok&&l.type=='mcq').map(l=>{const c=CANDS.find(x=>x.term.toLowerCase().replace(/[^\w-]/g,'')==l.ch);return c?`Chose “${esc(l.ch)}” (a term from <b>${esc(c.topic)}</b>) instead of “${esc(l.a)}” in <b>${esc(l.t)}</b>`:`Missed “${esc(l.a)}” in <b>${esc(l.t)}</b>`}))]}
+function qEnd(){const by={};QZ.r.forEach(x=>{const b=by[x.q.topic]||(by[x.q.topic]={c:0,n:0});b.n++;b.c+=x.ok});const sc=QZ.r.filter(x=>x.ok).length;
+$('#qa').innerHTML=`<div class="card"><b>Post-assessment report</b><p>Score: <b>${sc}/${QZ.r.length}</b></p><table>${Object.keys(by).map(t=>`<tr><td>${esc(t)}</td><td>${by[t].c}/${by[t].n}</td><td>mastery ${Math.round(M(S,t)*100)}%</td><td>${M(S,t)<.5?'<span class="tag" style="color:var(--r)">weak</span>':'<span class="tag" style="color:var(--g)">ok</span>'}</td></tr>`).join('')}</table>
+<b>Likely misconceptions</b><ul>${miscs(QZ.r.map(x=>({ok:x.ok,ch:x.v,a:x.q.ans,t:x.q.topic,type:x.q.type}))).map(m=>`<li>${m}</li>`).join('')||'<li>None detected 🎉</li>'}</ul><button onclick="show('dash')">See dashboard</button></div>`}
+function depth(t,v=new Set){if(v.has(t))return 0;v.add(t);const p=(TP[t]||[]).filter(x=>TP[x]);return p.length?1+Math.max(...p.map(x=>depth(x,new Set(v)))):0}
+function renderDash(){const T=Object.keys(TP);if(!T.length){$('#v-dash').innerHTML='<div class="card">Load a course first.</div>';return}
+const col={};T.forEach(t=>{const d=depth(t);(col[d]=col[d]||[]).push(t)});const pos={};Object.keys(col).forEach(d=>col[d].forEach((t,i)=>pos[t]={x:10+d*170,y:10+i*50}));
+const W=20+Object.keys(col).length*170,H=20+Math.max(...Object.values(col).map(a=>a.length))*50,color=t=>`hsl(${M(S,t)*120},60%,${document.documentElement.dataset.theme=='dark'?35:70}%)`;
+let svg=`<svg width="${W}" height="${H}" font-size="11" font-family="system-ui"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0L8,4L0,8z" fill="#888"/></marker></defs>`;
+T.forEach(t=>(TP[t]||[]).filter(p=>pos[p]).forEach(p=>svg+=`<line x1="${pos[p].x+150}" y1="${pos[p].y+17}" x2="${pos[t].x}" y2="${pos[t].y+17}" stroke="#888" marker-end="url(#ar)"/>`));
+T.forEach(t=>svg+=`<g><rect x="${pos[t].x}" y="${pos[t].y}" width="150" height="34" rx="8" fill="${color(t)}" stroke="#888"/><text x="${pos[t].x+75}" y="${pos[t].y+21}" text-anchor="middle" fill="#111">${esc(t.slice(0,22))} ${Math.round(M(S,t)*100)}%</text></g>`);svg+='</svg>';
+const weak=[...T].sort((a,b)=>M(S,a)-M(S,b)).filter(t=>M(S,t)<.6),iv=t=>Math.max(1,Math.round(1+8*Math.pow(M(S,t),2)));
+$('#v-dash').innerHTML=`<div class="card"><b>4 · Learner model dashboard</b> <span class="meta">Bayesian knowledge tracing per topic (prior 0.30, learn 0.15, slip 0.10, guess 0.25 MCQ / 0.05 typed)</span><p>Overall mastery: <b>${Math.round(avg(T.map(t=>M(S,t)))*100)}%</b> · ${S.log.length} answers logged ${S.log.length?'':'· <i>new student – take the Diagnostic quiz</i>'}</p>
+${T.map(t=>`<div style="margin:6px 0">${esc(t)} <span class="meta">${Math.round(M(S,t)*100)}% · ${(S.m[t]||{n:0}).n} obs</span><div class="bar"><i style="width:${M(S,t)*100}%;background:hsl(${M(S,t)*120},60%,45%)"></i></div></div>`).join('')}</div>
+<div class="card"><b>Course flow map</b> <span class="meta">prerequisites → dependents, coloured by mastery</span><div class="svgw">${svg}</div></div>
+<div class="card"><b>Weak topics & misconceptions</b><p>${weak.map(t=>`<span class="tag">${esc(t)} ${Math.round(M(S,t)*100)}%</span>`).join('')||'None'}</p><ul>${miscs(S.log).slice(-6).map(m=>`<li>${m}</li>`).join('')}</ul></div>
+<div class="card"><b>Study schedule</b> (forgetting-curve intervals) Days until exam <input type="number" id="ex" value="7" min="1" max="60" style="width:70px" onchange="sched()"><div id="sch"></div></div>`;sched()}
+function sched(){const T=Object.keys(TP).sort((a,b)=>M(S,a)-M(S,b)),n=Math.min(+($('#ex')||{value:7}).value,14);let h='<table>';
+for(let d=0;d<n;d++){const ts=[];T.forEach((t,i)=>{const iv=Math.max(1,Math.round(1+8*Math.pow(M(S,t),2)));if((d+i)%iv==0||d==0&&i<2)ts.push(t)});h+=`<tr><td>Day ${d+1}</td><td>${ts.slice(0,3).map(t=>`<span class="tag">${esc(t)} (${Math.round(M(S,t)*100)}%)</span>`).join('')||'<span class="meta">light review</span>'}</td></tr>`}$('#sch').innerHTML=h+'</table>'}
+function sim(ad){return[.2,.5,.8].map(a0=>{const s={m:{},asked:[],log:[]},T=Object.keys(TP),ts={},seen=new Set;T.forEach(t=>ts[t]=Math.min(.95,Math.max(.05,a0+(Math.random()-.5)*.2)));const g0=avg(T.map(t=>ts[t]));let rep=0,tot=0;
+for(let k=0;k<5;k++)gen(s,T,8,'mcq',ad).forEach(q=>{tot++;if(seen.has(q.id))rep++;seen.add(q.id);const ok=Math.random()<.25+.75*ts[q.topic];upd(s,q.topic,ok,.25);if(ad)s.asked.push(q.id);ts[q.topic]+=.1*(1-ts[q.topic])});
+return{a0,gain:avg(T.map(t=>ts[t]))-g0,est:avg(T.map(t=>M(s,t))),rep:rep/Math.max(tot,1)}})}
+function renderEval(){$('#v-eval').innerHTML=`<div class="card"><b>5 · System evaluation</b><p class="meta">Auto-built test set from your sources (query = sentence with every 3rd keyword dropped, so wording is partly paraphrased; known source unit) + 5 off-material queries. Built-in lightweight metrics – not RAGAS/DeepEval; export the test set to run those offline.</p><button class="p" onclick="runEval()">Run evaluation</button><div id="er"></div></div>`}
+function runEval(){if(!CANDS.length)return;const step=Math.max(1,Math.floor(CANDS.length/12));
+const tests=CANDS.filter((c,i)=>i%step==0).slice(0,12).map(c=>({q:c.s.replace(/[^\w\s]/g,'').split(/\s+/).filter(x=>tok(x).length).filter((x,i)=>i%3!=2).join(' '),uid:c.u.id,topic:c.topic}));
+const off=["How do I bake sourdough bread at home?","Who won the 2018 football world cup?","Explain how blockchain mining consumes electricity","What is the capital of Australia?","Describe the plot of Hamlet"];
+let h1=0,h3=0,pr=0,fr=0,fa=[],rl=[];tests.forEach(t=>{const r=search(t.q);if(r.h[0]&&r.h[0].u.id==t.uid)h1++;if(r.h.some(x=>x.u.id==t.uid))h3++;pr+=r.h.filter(x=>x.u.topic==t.topic).length/Math.max(r.h.length,1);
+const a=ans(t.q);if(a.k=='no')fr++;else{fa.push(a.ss.every(x=>a.u.text.includes(x.s))?1:0);rl.push(r.cov)}});
+const rf=off.filter(q=>ans(q).k=='no').length,n=tests.length,f=x=>(100*x).toFixed(0)+'%';
+const A=sim(true),B=sim(false),row=(l,r)=>`<tr><td>${l}</td><td>${r.map(x=>f(x.a0)).join(' / ')}</td><td>${r.map(x=>'+'+f(x.gain)).join(' / ')}</td><td>${r.map(x=>f(x.est)).join(' / ')}</td><td>${f(avg(r.map(x=>x.rep)))}</td></tr>`;
+$('#er').innerHTML=`<h4>Retrieval & generation (${n} in-scope, ${off.length} off-material)</h4><table><tr><td>Source recall@1 / @3</td><td>${f(h1/n)} / ${f(h3/n)}</td></tr><tr><td>Context precision@3 (same-topic share)</td><td>${f(pr/n)}</td></tr><tr><td>Faithfulness (cited sentences found verbatim in source)</td><td>${fa.length?f(avg(fa)):'n/a'}</td></tr><tr><td>Answer relevancy (key-term coverage)</td><td>${rl.length?f(avg(rl)):'n/a'}</td></tr><tr><td>Correct refusal on off-material</td><td>${rf}/${off.length}</td></tr><tr><td>False refusal on in-scope</td><td>${fr}/${n}</td></tr></table>
+<h4>Simulated students (ability .2/.5/.8 · 5 sessions × 8 Qs)</h4><table><tr><th>Policy</th><th>Start skill</th><th>True mastery gain</th><th>Est. mastery</th><th>Repetition</th></tr>${row('Adaptive + dedupe (ours)',A)}${row('Random baseline',B)}</table><p class="meta">Faithfulness is high by design (extractive answers); simulated learners are synthetic, so gains show policy behaviour, not real learning. Re-run for variance.</p>`}
+const VIEWS=[['lib','📂 Library'],['chat','💬 Tutor'],['quiz','📝 Assess'],['dash','📊 Dashboard'],['eval','🧪 Evaluate']];
+function show(id){document.querySelectorAll('.v').forEach(v=>v.classList.toggle('on',v.id=='v-'+id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==id));if(id=='dash')renderDash()}
+$('#nav').innerHTML=VIEWS.map(v=>`<button data-v="${v[0]}" onclick="show('${v[0]}')">${v[1]}</button>`).join('');
+function renderAll(){renderLib();renderChat();renderQuiz();renderEval();if($('#v-dash').classList.contains('on'))renderDash()}
+load();build();show('lib');
+</script></body></html>

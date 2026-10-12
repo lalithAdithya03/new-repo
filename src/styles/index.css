@@ -1,0 +1,49 @@
+@import './themes.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+    transition: background-color .25s ease, color .25s ease;
+  }
+  h1, h2, h3 { @apply font-display tracking-tight; }
+  :focus-visible { outline: 2px solid rgb(var(--accent)); outline-offset: 2px; }
+  ::selection { background: rgb(var(--primary) / .35); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+}
+
+@layer components {
+  .card { @apply rounded-2xl border border-border bg-surface shadow-card; }
+  .card-pad { @apply p-5 sm:p-6; }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
+           transition duration-150 disabled:cursor-not-allowed disabled:opacity-60 select-none;
+  }
+  .btn-primary { @apply btn bg-primary text-primary-fg hover:brightness-110 active:brightness-95 shadow-sm; }
+  .btn-secondary { @apply btn border border-border bg-surface-2 text-text hover:border-accent/60; }
+  .btn-ghost { @apply btn text-muted hover:bg-surface-2 hover:text-text; }
+  .btn-danger { @apply btn bg-danger/15 text-danger hover:bg-danger/25; }
+  .input {
+    @apply w-full rounded-xl border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-text
+           placeholder:text-muted/80 transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30;
+  }
+  .input-error { @apply border-danger focus:border-danger focus:ring-danger/30; }
+  .label { @apply mb-1.5 block text-sm font-medium text-text; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-xs font-medium text-muted; }
+  .link { @apply font-medium text-accent hover:underline underline-offset-4; }
+  .hero-gradient {
+    background:
+      radial-gradient(60rem 30rem at 10% -10%, rgb(var(--hero-a) / .35), transparent 60%),
+      radial-gradient(50rem 30rem at 100% 0%, rgb(var(--hero-b) / .25), transparent 60%);
+  }
+  .text-gradient {
+    background: linear-gradient(90deg, rgb(var(--hero-a)), rgb(var(--hero-b)));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  mark { background: rgb(var(--warning) / .3); color: inherit; border-radius: 3px; padding: 0 2px; }
+}

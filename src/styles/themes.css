@@ -1,0 +1,91 @@
+/*
+ * Design tokens. Every colour in the UI comes from these variables (RGB triplets so Tailwind
+ * can apply opacity). Each theme defines a dark and a light appearance; <html data-theme data-mode>
+ * selects one. Text/background pairs are chosen for WCAG AA contrast (>= 4.5:1 for body text,
+ * white on --primary >= 4.5:1).
+ */
+:root,
+[data-theme='midnight-indigo'][data-mode='dark'] {
+  --bg: 11 16 32;          --surface: 17 24 46;     --surface-2: 26 34 64;   --border: 44 54 92;
+  --text: 230 234 255;     --muted: 156 166 206;
+  --primary: 79 70 229;    --primary-fg: 255 255 255; --secondary: 59 130 246; --accent: 125 170 255;
+  --success: 52 211 153;   --warning: 251 191 36;   --danger: 248 113 113;   --shadow: 0 0 0;
+  --hero-a: 79 70 229;     --hero-b: 14 165 233;
+  color-scheme: dark;
+}
+[data-theme='midnight-indigo'][data-mode='light'] {
+  --bg: 245 247 255;       --surface: 255 255 255;  --surface-2: 236 240 252; --border: 214 220 240;
+  --text: 15 23 42;        --muted: 71 85 105;
+  --primary: 79 70 229;    --primary-fg: 255 255 255; --secondary: 37 99 235; --accent: 67 56 202;
+  --success: 4 120 87;     --warning: 180 83 9;     --danger: 185 28 28;     --shadow: 30 41 120;
+  --hero-a: 79 70 229;     --hero-b: 14 165 233;
+  color-scheme: light;
+}
+
+[data-theme='ocean-breeze'][data-mode='dark'] {
+  --bg: 6 26 43;           --surface: 11 37 57;     --surface-2: 18 50 74;   --border: 31 74 102;
+  --text: 230 246 255;     --muted: 148 184 204;
+  --primary: 14 116 144;   --primary-fg: 255 255 255; --secondary: 20 184 166; --accent: 34 211 238;
+  --success: 52 211 153;   --warning: 251 191 36;   --danger: 248 113 113;   --shadow: 0 0 0;
+  --hero-a: 8 145 178;     --hero-b: 20 184 166;
+  color-scheme: dark;
+}
+[data-theme='ocean-breeze'][data-mode='light'] {
+  --bg: 240 249 255;       --surface: 255 255 255;  --surface-2: 224 242 254; --border: 186 230 253;
+  --text: 8 47 73;         --muted: 63 98 116;
+  --primary: 14 116 144;   --primary-fg: 255 255 255; --secondary: 13 148 136; --accent: 3 105 161;
+  --success: 4 120 87;     --warning: 180 83 9;     --danger: 185 28 28;     --shadow: 8 47 73;
+  --hero-a: 8 145 178;     --hero-b: 13 148 136;
+  color-scheme: light;
+}
+
+[data-theme='emerald-focus'][data-mode='dark'] {
+  --bg: 7 19 15;           --surface: 13 31 25;     --surface-2: 20 43 35;   --border: 35 64 53;
+  --text: 231 245 238;     --muted: 154 184 170;
+  --primary: 4 120 87;     --primary-fg: 255 255 255; --secondary: 100 116 139; --accent: 52 211 153;
+  --success: 52 211 153;   --warning: 251 191 36;   --danger: 248 113 113;   --shadow: 0 0 0;
+  --hero-a: 5 150 105;     --hero-b: 110 231 183;
+  color-scheme: dark;
+}
+[data-theme='emerald-focus'][data-mode='light'] {
+  --bg: 243 250 246;       --surface: 255 255 255;  --surface-2: 230 244 236; --border: 207 229 216;
+  --text: 15 42 31;        --muted: 71 94 84;
+  --primary: 4 120 87;     --primary-fg: 255 255 255; --secondary: 71 85 105; --accent: 4 120 87;
+  --success: 4 120 87;     --warning: 180 83 9;     --danger: 185 28 28;     --shadow: 15 42 31;
+  --hero-a: 5 150 105;     --hero-b: 71 85 105;
+  color-scheme: light;
+}
+
+[data-theme='royal-purple'][data-mode='dark'] {
+  --bg: 18 11 31;          --surface: 27 18 48;     --surface-2: 37 26 64;   --border: 59 44 94;
+  --text: 243 238 255;     --muted: 179 166 209;
+  --primary: 124 58 237;   --primary-fg: 255 255 255; --secondary: 168 85 247; --accent: 196 181 253;
+  --success: 52 211 153;   --warning: 251 191 36;   --danger: 248 113 113;   --shadow: 0 0 0;
+  --hero-a: 124 58 237;    --hero-b: 192 132 252;
+  color-scheme: dark;
+}
+[data-theme='royal-purple'][data-mode='light'] {
+  --bg: 250 247 255;       --surface: 255 255 255;  --surface-2: 241 235 255; --border: 224 212 251;
+  --text: 30 16 51;        --muted: 91 75 120;
+  --primary: 109 40 217;   --primary-fg: 255 255 255; --secondary: 147 51 234; --accent: 109 40 217;
+  --success: 4 120 87;     --warning: 180 83 9;     --danger: 185 28 28;     --shadow: 60 20 110;
+  --hero-a: 109 40 217;    --hero-b: 192 132 252;
+  color-scheme: light;
+}
+
+[data-theme='light-minimal'][data-mode='light'] {
+  --bg: 248 250 252;       --surface: 255 255 255;  --surface-2: 241 245 249; --border: 226 232 240;
+  --text: 15 23 42;        --muted: 71 85 105;
+  --primary: 37 99 235;    --primary-fg: 255 255 255; --secondary: 100 116 139; --accent: 29 78 216;
+  --success: 4 120 87;     --warning: 180 83 9;     --danger: 185 28 28;     --shadow: 15 23 42;
+  --hero-a: 37 99 235;     --hero-b: 96 165 250;
+  color-scheme: light;
+}
+[data-theme='light-minimal'][data-mode='dark'] {
+  --bg: 15 17 21;          --surface: 23 26 33;     --surface-2: 31 35 44;   --border: 45 51 63;
+  --text: 229 231 235;     --muted: 156 163 175;
+  --primary: 37 99 235;    --primary-fg: 255 255 255; --secondary: 148 163 184; --accent: 96 165 250;
+  --success: 52 211 153;   --warning: 251 191 36;   --danger: 248 113 113;   --shadow: 0 0 0;
+  --hero-a: 37 99 235;     --hero-b: 148 163 184;
+  color-scheme: dark;
+}
